@@ -107,7 +107,22 @@ app.use((req, res, next) => {
 });
 
 app.get("/Patient", (req, res) => {
-   res.send(patients);
+
+   var response = {
+      resourceType: "Bundle",
+      entry: patients.map(patient => 
+         {
+            var entry = 
+            {
+               fullUrl: `${req.protocol}://${req.headers.host}${req.path}/${patient.id}`,
+               resource: patient
+            }
+            
+            return entry;
+         })
+   };
+
+   res.send(response);
 });
 
 app.get("/Patient/:patientId", (req, res) => {        

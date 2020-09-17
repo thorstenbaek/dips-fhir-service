@@ -1,0 +1,50 @@
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: thorstenbaekcontainerregistry.azurecr.io
+        username: ${{ secrets.acr_thorstenbaekcontainerregistry_username }}
+        password: ${{ secrets.acr_thorstenbaekcontainerregistry_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/" -f  "dockerfile" -t thorstenbaekcontainerregistry.azurecr.io/k8sakscluster:${{ github.sha }}
+        docker push thorstenbaekcontainerregistry.azurecr.io/k8sakscluster:${{ github.sha }}
+    
+    - uses: azure/k8s-set-context@v1
+      with:
+         kubeconfig: ${{ secrets.aks_k8sakscluster_kubeConfig }}
+      id: login
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep k8sakscluster6eaa | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace k8sakscluster6eaa`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: k8sakscluster6eaa
+        container-registry-url: thorstenbaekcontainerregistry.azurecr.io
+        container-registry-username: ${{ secrets.acr_thorstenbaekcontainerregistry_username }}
+        container-registry-password: ${{ secrets.acr_thorstenbaekcontainerregistry_password }}
+        secret-name: k8saksclustedockerauth
+       
+    - uses: azure/k8s-deploy@v1
+      with:
+        namespace: k8sakscluster6eaa
+        manifests: |
+          manifests/deployment.yml
+          manifests/service.yml
+        images: |
+          thorstenbaekcontainerregistry.azurecr.io/k8sakscluster:${{ github.sha }}
+        imagepullsecrets: |
+          k8saksclustedockerauth

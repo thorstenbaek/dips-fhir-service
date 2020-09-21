@@ -1,7 +1,7 @@
 FROM node:14-alpine
 
 # Create app directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
@@ -14,8 +14,11 @@ RUN npm install
 
 # Bundle app source
 COPY . .
-# COPY fhir-data /usr/src/app/fhir-data
 
-EXPOSE 8080
+EXPOSE 80
+EXPOSE 443
+
+ENV TZ=Europe/Oslo
+ENV IN_CONTAINER=1
 
 CMD [ "node", "index.js" ]

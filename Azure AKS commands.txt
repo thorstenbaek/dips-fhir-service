@@ -1,0 +1,28 @@
+Create resource group:
+az group create --name TstContainerGroup --location northeurope
+az acr create --name ThorStenbaekContainerRegistry --resource-group TstContainerGroup --sku standard --admin-enabled true
+
+Create Kubernetes Cluster
+az aks create --resource-group k8sResourceGroup --name k8sAKSCluster --node-count 2 --generate-ssh-keys --attach-acr thorstenbaekcontainerregistry
+
+Apply new service in Kubernetes:
+kubectl apply dips-ehr-service.yaml
+
+
+
+//old stuff...
+dips-ehr-app
+git clone https://github.com/thorstenbaek/dips-ehr-app.git
+cd dips-ehr-app
+az acr build --registry ThorStenbaekContainerRegistry --image dips-ehr-app .
+
+growth-chart-app
+git clone https://github.com/thorstenbaek/growth-chart-app.git
+cd growth-chart-app
+az acr build --registry ThorStenbaekContainerRegistry --image growth-chart-app .
+
+
+dips-ehr-service
+git clone https://github.com/thorstenbaek/dips-fhir-service.git
+cd dip-ehr-service
+az acr build --registry ThorStenbaekContainerRegistry --image dips-ehr-service .

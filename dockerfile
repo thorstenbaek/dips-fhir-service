@@ -16,7 +16,6 @@ RUN npm install
 COPY . .
 
 EXPOSE 80
-EXPOSE 443
 
 ENV TZ=Europe/Oslo
 ENV IN_CONTAINER=1

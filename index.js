@@ -7,6 +7,10 @@ const port = 80;
 
 const app = express();
 
+app.listen(port, () => {
+   console.log(`Express listening on at port ${port}`)
+});
+
 let familyMemberHistory = 
 [{
    "resourceType" : "FamilyMemberHistory",
@@ -144,6 +148,28 @@ app.get("/FamilyMemberHistory", (req, res) => {
     res.send(familyMemberHistory);    
 })
 
-app.listen(port, () => {
-    console.log(`Express listening on at port ${port}`)
-});
+function loadMetadata()
+{
+   let rawdata = fs.readFileSync('./fhir-data/metadata.json');
+   metadata = JSON.parse(rawdata);
+}
+
+var metadata;
+loadMetadata();
+
+app.get("/metadata", (req, res) => {   
+   res.send(metadata);
+})
+
+function loadWellknown()
+{
+   let rawdata = fs.readFileSync('./fhir-data/wellknown.json');
+   wellKnown = JSON.parse(rawdata);
+}
+
+var wellKnown;
+loadWellknown();
+
+// app.get("/.well-known/smart-configuration", (req, res) => {
+//    res.send(wellKnown);
+// })

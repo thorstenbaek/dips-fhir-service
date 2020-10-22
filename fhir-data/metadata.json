@@ -29,11 +29,11 @@
                         "extension": [
                             {
                                 "url": "authorize",
-                                "valueUri": "http://localhost:8082/authorize"
+                                "valueUri": "${SecurityServiceUri}/authorize"
                             },
                             {
                                 "url": "token",
-                                "valueUri": "http://localhost:8082/token"
+                                "valueUri": "${SecurityServiceUri}/token"
                             }
                         ]
                     }

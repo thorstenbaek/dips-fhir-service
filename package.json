@@ -7,9 +7,11 @@
     "JSON": "^1.0.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "https": "^1.0.0",
     "ndjson": "^2.0.0",
+    "njwt": "^1.0.0",
     "nodemon": "^2.0.4",
-    "njwt": "^1.0.0"
+    "string.prototype.replaceall": "^1.0.3"
   },
   "devDependencies": {},
   "scripts": {

@@ -2,10 +2,15 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser")
 const ndjson = require('ndjson')
-const fs = require('fs')
+const fs = require('fs');
+const https = require('https');
+
 const port = 80;
+const ConfigurationServiceUri = "dips-ehr-configuration.sandbox-dev.norwayeast.cloudapp.azure.com";
 
 const app = express();
+
+// process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
 app.listen(port, () => {
    console.log(`Express listening on at port ${port}`)
@@ -100,7 +105,7 @@ var corsOptions =
     "origin": "*"    
 }
 
-
+let SecurityServiceUri = null;
 
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
@@ -148,28 +153,79 @@ app.get("/FamilyMemberHistory", (req, res) => {
     res.send(familyMemberHistory);    
 })
 
-function loadMetadata()
+async function LoadConfig()
 {
+   var environment = process.env.ENVIRONMENT;
+
+   console.log(`Loading Config for environment ${environment}`);
+   
+   var options = {
+      host: ConfigurationServiceUri, 
+      port: 443,
+      path: `/Setting/${environment}/SecurityServiceUri`,
+      method: 'GET',
+      rejectUnauthorized: false,
+      requestCert: true,
+      agent: false
+    };
+
+   https.get(options, res => {
+      res.on("data", data => {
+         SecurityServiceUri = data;      
+         console.log("SecurityServiceUri :" + SecurityServiceUri);
+
+         loadMetadata();
+         loadWellknown();   
+
+         console.log(`Finished loading Config`);
+      });
+   });
+}
+LoadConfig();
+
+async function loadMetadata()
+{
+   console.log("Loading Metadata...");
+
    let rawdata = fs.readFileSync('./fhir-data/metadata.json');
+   rawdata = rawdata.toString();
+   rawdata = replaceAll(rawdata, "${SecurityServiceUri}", SecurityServiceUri);   
+
    metadata = JSON.parse(rawdata);
 }
 
 var metadata;
-loadMetadata();
-
 app.get("/metadata", (req, res) => {   
    res.send(metadata);
 })
 
-function loadWellknown()
+/* Define function for escaping user input to be treated as 
+    a literal string within a regular expression */
+    function escapeRegExp(string){
+      return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+      
+  /* Define functin to find and replace specified term with replacement string */
+  function replaceAll(str, term, replacement) {
+      return str.replace(new RegExp(escapeRegExp(term), 'g'), replacement);
+  }
+
+async function loadWellknown()
 {
+   console.log("Loading Wellknown...");
+   
    let rawdata = fs.readFileSync('./fhir-data/wellknown.json');
+   rawdata = rawdata.toString();
+   rawdata = replaceAll(rawdata, "${SecurityServiceUri}", SecurityServiceUri);   
+
    wellKnown = JSON.parse(rawdata);
 }
 
 var wellKnown;
-loadWellknown();
+app.get("/.well-known/smart-configuration", (req, res) => {
+   res.send(wellKnown);
+})
 
-// app.get("/.well-known/smart-configuration", (req, res) => {
-//    res.send(wellKnown);
-// })
+app.get("/environment", (req, res) => {
+   res.send(process.env.ENVIRONMENT);
+})

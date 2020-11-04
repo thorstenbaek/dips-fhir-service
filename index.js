@@ -6,11 +6,8 @@ const fs = require('fs');
 const https = require('https');
 
 const port = 80;
-const ConfigurationServiceUri = "dips-ehr-configuration.sandbox-dev.norwayeast.cloudapp.azure.com";
 
 const app = express();
-
-// process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
 app.listen(port, () => {
    console.log(`Express listening on at port ${port}`)
@@ -111,7 +108,7 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {       
-    console.log(req.originalUrl);
+    console.log(`${req.method}: ${req.originalUrl}`);
     next();
 });
 
@@ -156,6 +153,7 @@ app.get("/FamilyMemberHistory", (req, res) => {
 async function LoadConfig()
 {
    var environment = process.env.ENVIRONMENT;
+   var configurationServiceUri = process.env.CONFIGURATION_SERVICE_URI;
 
    console.log(`Loading Config for environment ${environment}`);
    

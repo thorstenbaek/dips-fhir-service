@@ -3,7 +3,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser")
 const ndjson = require('ndjson')
 const fs = require('fs');
-const https = require('https');
+const http = require('http');
 
 const port = 80;
 
@@ -155,19 +155,15 @@ async function LoadConfig()
    var environment = process.env.ENVIRONMENT;
    var configurationServiceUri = process.env.CONFIGURATION_SERVICE_URI;
 
-   console.log(`Loading Config for environment ${environment}`);
+   console.log(`Loading Config for environment ${environment} from ${configurationServiceUri}`);
    
    var options = {
-      host: ConfigurationServiceUri, 
-      port: 443,
+      host: configurationServiceUri, 
       path: `/Setting/${environment}/SecurityServiceUri`,
-      method: 'GET',
-      rejectUnauthorized: false,
-      requestCert: true,
-      agent: false
+      method: 'GET'
     };
 
-   https.get(options, res => {
+   http.get(options, res => {
       res.on("data", data => {
          SecurityServiceUri = data;      
          console.log("SecurityServiceUri :" + SecurityServiceUri);
@@ -190,6 +186,8 @@ async function loadMetadata()
    rawdata = replaceAll(rawdata, "${SecurityServiceUri}", SecurityServiceUri);   
 
    metadata = JSON.parse(rawdata);
+
+   console.log("Loaded Metadata...");
 }
 
 var metadata;
@@ -217,6 +215,8 @@ async function loadWellknown()
    rawdata = replaceAll(rawdata, "${SecurityServiceUri}", SecurityServiceUri);   
 
    wellKnown = JSON.parse(rawdata);
+
+   console.log("Loaded Wellknown...");
 }
 
 var wellKnown;
